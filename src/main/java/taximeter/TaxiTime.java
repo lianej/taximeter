@@ -3,12 +3,10 @@ package taximeter;
 import lombok.Value;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * @author yanweijin
- * @date 2018/10/9
- */
+
 @Value
 public class TaxiTime {
 
@@ -31,6 +29,10 @@ public class TaxiTime {
 			default:
 				return TimeRange.DAY;
 		}
+	}
+
+	LocalTime getTime(){
+		return this.dateTime.toLocalTime();
 	}
 
 	@Override

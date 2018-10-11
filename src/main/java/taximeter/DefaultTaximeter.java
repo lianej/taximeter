@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * @author yanweijin
- * @date 2018/10/9
- */
+
 @Slf4j
 class DefaultTaximeter implements Taximeter {
 
@@ -47,13 +44,13 @@ class DefaultTaximeter implements Taximeter {
 			this.distance += 1;
 			BigDecimal currentDistancePrice = billingStrategy.getCurrentDistanceUnitPrice(distance, currentTime);
 			this.totalPrice = totalPrice.add(currentDistancePrice);
-			log.debug("当前里程:{}, 本单位里程价格:{}", distance, currentDistancePrice);
+			log.trace("当前里程:{}, 本单位里程价格:{}", distance, currentDistancePrice);
 		}
 
 		@Override
 		public Bill checkout() {
 			this.end = true;
-			log.debug("上车时间:{}, 起步价:{}, 里程:{}, 总价:{}", boardingTime, startingPrice, distance, totalPrice);
+			log.trace("上车时间:{}, 起步价:{}, 里程:{}, 总价:{}", boardingTime, startingPrice, distance, totalPrice);
 			return new BillImpl();
 		}
 

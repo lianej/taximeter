@@ -2,14 +2,10 @@ package taximeter;
 
 import lombok.Getter;
 
-import java.math.BigDecimal;
 
-/**
- * @author yanweijin
- * @date 2018/10/9
- */
 public class Taxi {
 
+	@Getter
 	private Locale locale;
 
 	private Taximeter taximeter;
@@ -42,50 +38,11 @@ public class Taxi {
 	private BillingStrategy getBillingStrategy(TaxiTime boardingTime) {
 		TimeRange timeRange = boardingTime.getTimeRange();
 		if (timeRange == TimeRange.DAY) {
-			return new DefaultDayBillingStrategy();
+			return new DefaultDayBillingStrategy(locale);
 		} else if (timeRange == TimeRange.NIGHT) {
-			return new DefaultNightBillingStrategy();
+			return new DefaultNightBillingStrategy(locale);
 		}
 		throw new IllegalArgumentException("无效的时间范围: " + timeRange);
-	}
-
-	private class DefaultDayBillingStrategy implements BillingStrategy {
-		private int paidDistance = 3;
-
-		@Override
-		public BigDecimal getStartingPrice(TaxiTime currentTime) {
-			return new BigDecimal(14);
-		}
-
-		@Override
-		public BigDecimal getCurrentDistanceUnitPrice(int currentDistance, TaxiTime currentTime) {
-			if (currentDistance > 10 && locale == Locale.INNER_RING) {
-				return new BigDecimal(3.5);
-			} else if (currentDistance > paidDistance) {
-				return new BigDecimal(2.5);
-			}
-			return BigDecimal.ZERO;
-		}
-	}
-
-	@Getter
-	private class DefaultNightBillingStrategy implements BillingStrategy {
-		private int paidDistance = 3;
-
-		@Override
-		public BigDecimal getStartingPrice(TaxiTime currentTime) {
-			return new BigDecimal(18);
-		}
-
-		@Override
-		public BigDecimal getCurrentDistanceUnitPrice(int currentDistance, TaxiTime currentTime) {
-			if (currentDistance > 10 && locale == Locale.INNER_RING) {
-				return new BigDecimal(4.7);
-			} else if (currentDistance > paidDistance) {
-				return new BigDecimal(3);
-			}
-			return BigDecimal.ZERO;
-		}
 	}
 
 }
