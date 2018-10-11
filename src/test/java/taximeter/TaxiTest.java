@@ -96,7 +96,7 @@ class TaxiTest {
 	}
 
 	private TaxiTime getTaxiTime(int hour, int minute) {
-		return new TaxiTime(LocalDateTime.of(2018, 10, 1, hour, 0));
+		return new TaxiTime(LocalDateTime.of(2018, 10, 1, hour, minute));
 	}
 
 }
