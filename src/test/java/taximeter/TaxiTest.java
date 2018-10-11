@@ -69,7 +69,7 @@ class TaxiTest {
     void should_calculate_peak_period_price_if_at_peak() {
 		Taxi taxi = new Taxi(Locale.INNER_RING);
 		DefaultDayBillingStrategy defaultDayBillingStrategy = new DefaultDayBillingStrategy(taxi.getLocale());
-		Range<LocalTime> peakPeriod = Range.closed(LocalTime.of(8, 0), LocalTime.of(9, 0));
+		Range<LocalTime> peakPeriod = Range.closedOpen(LocalTime.of(8, 0), LocalTime.of(9, 0));
 		PeakBillingStrategy.PeakSettings peakSetting = new PeakBillingStrategy.PeakSettings(peakPeriod, BigDecimal.valueOf(1.5));
 		PeakBillingStrategy peakBillingStrategy = new PeakBillingStrategy(defaultDayBillingStrategy, peakSetting);
 
@@ -89,7 +89,9 @@ class TaxiTest {
 
 		Bill bill = trip.checkout();
 
-		assertEquals(BigDecimal.valueOf(40.25),bill.getTotalPrice());
+		BigDecimal expectedTotalPrice = BigDecimal.valueOf(39.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+		BigDecimal totalPrice = bill.getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_UP);
+		assertEquals(expectedTotalPrice, totalPrice);
 		assertEquals(Integer.valueOf(10),bill.getDistance());
 
 
