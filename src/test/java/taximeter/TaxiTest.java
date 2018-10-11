@@ -94,8 +94,8 @@ class TaxiTest {
 		assertEquals(BigDecimal.valueOf(49).setScale(2, BigDecimal.ROUND_HALF_UP), bill1.getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_UP));
 		assertEquals(Integer.valueOf(12),bill1.getDistance());
 
-		BillingTrip tripAtPeakOfPM = taxi.start(getTaxiTime(17, 50), peakBillingStrategy);
 		//peak period begin
+		BillingTrip tripAtPeakOfPM = taxi.start(getTaxiTime(17, 50), peakBillingStrategy);
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(17,55));
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,1));
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,15));
