@@ -69,30 +69,50 @@ class TaxiTest {
     void should_calculate_peak_period_price_if_at_peak() {
 		Taxi taxi = new Taxi(Locale.INNER_RING);
 		DefaultDayBillingStrategy defaultDayBillingStrategy = new DefaultDayBillingStrategy(taxi.getLocale());
-		Range<LocalTime> peakPeriod = Range.closedOpen(LocalTime.of(8, 0), LocalTime.of(9, 0));
-		PeakBillingStrategy.PeakSettings peakSetting = new PeakBillingStrategy.PeakSettings(peakPeriod, BigDecimal.valueOf(1.5));
-		PeakBillingStrategy peakBillingStrategy = new PeakBillingStrategy(defaultDayBillingStrategy, peakSetting);
+		Range<LocalTime> peakPeriodOfAM = Range.closedOpen(LocalTime.of(8, 0), LocalTime.of(9, 0));
+		PeakSettings peakSettingOfAM = new PeakSettings(peakPeriodOfAM, BigDecimal.valueOf(1.5));
+		Range<LocalTime> peakPeriodOfPM = Range.closedOpen(LocalTime.of(17, 0), LocalTime.of(18, 30));
+		PeakSettings peakSettingOfPM = new PeakSettings(peakPeriodOfPM, BigDecimal.valueOf(2));
+		PeakBillingStrategy peakBillingStrategy = new PeakBillingStrategy(defaultDayBillingStrategy, peakSettingOfAM, peakSettingOfPM);
 
-		BillingTrip trip = taxi.start(getTaxiTime(7, 50), peakBillingStrategy);
-		trip.increaseDistance(getTaxiTime(7,55));
+
+		BillingTrip tripAtPeakOfAM = taxi.start(getTaxiTime(7, 50), peakBillingStrategy);
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(7,55));
 		//peak period begin
-		trip.increaseDistance(getTaxiTime(8,1));
-		trip.increaseDistance(getTaxiTime(8,15));
-		trip.increaseDistance(getTaxiTime(8,22));
-		trip.increaseDistance(getTaxiTime(8,29));
-		trip.increaseDistance(getTaxiTime(8,34));
-		trip.increaseDistance(getTaxiTime(8,40));
-		trip.increaseDistance(getTaxiTime(8,49));
-		trip.increaseDistance(getTaxiTime(8,55));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,1));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,15));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,22));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,29));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,34));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,40));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,45));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,50));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,55));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,59));
 		//peak period end
-		trip.increaseDistance(getTaxiTime(9,2));
+		tripAtPeakOfAM.increaseDistance(getTaxiTime(9,2));
 
-		Bill bill = trip.checkout();
+		Bill bill1 = tripAtPeakOfAM.checkout();
+		assertEquals(BigDecimal.valueOf(49).setScale(2, BigDecimal.ROUND_HALF_UP), bill1.getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_UP));
+		assertEquals(Integer.valueOf(12),bill1.getDistance());
 
-		BigDecimal expectedTotalPrice = BigDecimal.valueOf(39.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-		BigDecimal totalPrice = bill.getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_UP);
-		assertEquals(expectedTotalPrice, totalPrice);
-		assertEquals(Integer.valueOf(10),bill.getDistance());
+		BillingTrip tripAtPeakOfPM = taxi.start(getTaxiTime(17, 50), peakBillingStrategy);
+		//peak period begin
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(17,55));
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,1));
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,15));
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,22));
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,29));
+		//peak period end
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,34));
+		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,40));
+
+		Bill bill2 = tripAtPeakOfPM.checkout();
+
+		assertEquals(BigDecimal.valueOf(43).setScale(2, BigDecimal.ROUND_HALF_UP), bill2.getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_UP));
+		assertEquals(Integer.valueOf(7),bill2.getDistance());
+
+
 
 
 	}

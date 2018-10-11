@@ -1,8 +1,6 @@
 package taximeter;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -50,17 +48,4 @@ public class PeakBillingStrategy implements BillingStrategy {
       return peakPriceCalculator.apply(currentTime, currentPrice);
   }
 
-  public static class PeakSettings {
-    private Range<LocalTime> peakTime;
-    @Getter private BigDecimal ratio;
-
-    public PeakSettings(Range<LocalTime> peakTime, BigDecimal ratio) {
-      this.peakTime = peakTime;
-      this.ratio = ratio;
-    }
-
-    public boolean isPeakTime(LocalTime time) {
-      return peakTime.contains(time);
-    }
-  }
 }
