@@ -28,13 +28,12 @@ public class PeakPeriod {
             || this.period.lowerEndpoint().equals(otherPeriod.upperEndpoint()));
   }
 
-  public boolean isPeakTime(LocalTime time){
-      return this.period.contains(time);
+  public boolean isPeakTime(LocalTime time) {
+    return this.period.contains(time);
   }
 
-    @Override
-    public String toString() {
-        return period.toString();
-    }
-
+  @Override
+  public String toString() {
+    return period.toString();
+  }
 }
