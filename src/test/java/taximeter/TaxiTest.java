@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import taximeter.adapter.strategy.BaseBillingStrategyFactory;
+import taximeter.adapter.strategy.PeakBillingStrategyFactory;
+import taximeter.adapter.strategy.PeakSettings;
+import taximeter.domain.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,7 +42,7 @@ class TaxiTest {
 	void should_return_total_price_is_$4_given_taxi_locale_is_$1_and_boarding_at_$2_when_distance_is_$3(
 			Locale locale, TimeRange timeRange, int distance, BigDecimal expectedTotalPrice) {
 		TaxiTime boardingTime = getTaxiTime(timeRange == TimeRange.DAY ? 10 : 23, 0);
-		Bill bill = new Taxi(locale).run(boardingTime, distance);
+		Bill bill = new Taxi(locale, new BaseBillingStrategyFactory()).run(boardingTime, distance);
 		assertEquals(expectedTotalPrice.setScale(2, BigDecimal.ROUND_FLOOR), bill.getTotalPrice().setScale(2, BigDecimal.ROUND_FLOOR));
 		assertEquals(Integer.valueOf(distance), bill.getDistance());
 		assertEquals(boardingTime.getDateTime(), bill.getBoardingTime());
@@ -59,7 +63,7 @@ class TaxiTest {
 
 	@Test
 	void should_throw_ex_given_trip_was_checkout_when_increase_distance() {
-		BillingTrip trip = new Taxi(Locale.INNER_RING).start(getTaxiTime(10, 0));
+		BillingTrip trip = new Taxi(Locale.INNER_RING, new BaseBillingStrategyFactory()).start(getTaxiTime(10, 0));
 		trip.checkout();
 		IllegalStateException exception = assertThrows(IllegalStateException.class, () -> trip.increaseDistance(getTaxiTime(11, 0)));
 		assertEquals("行程已结束", exception.getMessage());
@@ -67,14 +71,15 @@ class TaxiTest {
 
   	@Test
     void should_calculate_peak_period_price_if_at_peak() {
-		Taxi taxi = new Taxi(Locale.INNER_RING);
-		DefaultDayBillingStrategy defaultDayBillingStrategy = new DefaultDayBillingStrategy(taxi.getLocale());
 		PeakSettings peakSettingOfAM = newSettings(of(8, 0), of(9, 0), 1.5);
 		PeakSettings peakSettingOfPM = newSettings(of(17, 0), of(18,30), 2);
-		PeakBillingStrategy peakBillingStrategy = new PeakBillingStrategy(defaultDayBillingStrategy, peakSettingOfAM, peakSettingOfPM);
+	    BaseBillingStrategyFactory strategyFactory = new BaseBillingStrategyFactory();
+	    PeakBillingStrategyFactory peakBillingStrategyFactory = new PeakBillingStrategyFactory(peakSettingOfAM, peakSettingOfPM);
+	    strategyFactory.setPeakBillingStrategyFactory(peakBillingStrategyFactory);
+	    Taxi taxi = new Taxi(Locale.INNER_RING, strategyFactory);
 
 
-		BillingTrip tripAtPeakOfAM = taxi.start(getTaxiTime(7, 50), peakBillingStrategy);
+	    BillingTrip tripAtPeakOfAM = taxi.start(getTaxiTime(7, 50));
 		tripAtPeakOfAM.increaseDistance(getTaxiTime(7,55));
 		//peak period begin
 		tripAtPeakOfAM.increaseDistance(getTaxiTime(8,1));
@@ -95,7 +100,7 @@ class TaxiTest {
 		assertEquals(Integer.valueOf(12),bill1.getDistance());
 
 		//peak period begin
-		BillingTrip tripAtPeakOfPM = taxi.start(getTaxiTime(17, 50), peakBillingStrategy);
+		BillingTrip tripAtPeakOfPM = taxi.start(getTaxiTime(17, 50));
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(17,55));
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,1));
 		tripAtPeakOfPM.increaseDistance(getTaxiTime(18,15));
@@ -114,23 +119,19 @@ class TaxiTest {
 
 	@Test
 	void should_throw_IAE_given_intersected_peak_periods() {
-		Taxi taxi = new Taxi(Locale.INNER_RING);
-		DefaultDayBillingStrategy defaultDayBillingStrategy = new DefaultDayBillingStrategy(taxi.getLocale());
-		PeakSettings peakSettingOfAM = newSettings(of(8, 0), of(9, 0), 1.5);
-		PeakSettings peakSettingOfPM = newSettings(of(8, 30), of(9, 30), 2);
+		PeakSettings peakSetting1 = newSettings(of(8, 0), of(9, 00), 1.5);
+		PeakSettings peakSetting2 = newSettings(of(8, 30), of(9,30), 2);
 		IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
-				() -> new PeakBillingStrategy(defaultDayBillingStrategy, peakSettingOfAM, peakSettingOfPM));
+				() -> new PeakBillingStrategyFactory(peakSetting1, peakSetting2));
 		assertEquals("高峰期配置不能有交集:[08:30..09:30),[08:00..09:00)",iae.getMessage());
 	}
 
 	@Test
 	void should_create_strategy_success_given_adjacent_peak_periods() {
-		Taxi taxi = new Taxi(Locale.INNER_RING);
-		DefaultDayBillingStrategy defaultDayBillingStrategy = new DefaultDayBillingStrategy(taxi.getLocale());
-		PeakSettings peakSettingOfAM = newSettings(of(8, 0), of(9, 0), 1.5);
-		PeakSettings peakSettingOfPM = newSettings(of(9, 0), of(9, 30), 2);
-		new PeakBillingStrategy(defaultDayBillingStrategy, peakSettingOfAM, peakSettingOfPM);
-		new PeakBillingStrategy(defaultDayBillingStrategy, peakSettingOfPM, peakSettingOfAM);
+		PeakSettings peakSetting1 = newSettings(of(8, 0), of(9, 0), 1.5);
+		PeakSettings peakSetting2 = newSettings(of(9, 0), of(9, 30), 2);
+		new PeakBillingStrategyFactory(peakSetting1, peakSetting2);
+		new PeakBillingStrategyFactory(peakSetting2, peakSetting1);
 	}
 
 	private PeakSettings newSettings(LocalTime begin, LocalTime end, double ratio) {
