@@ -18,32 +18,32 @@ import static java.math.BigDecimal.valueOf;
  */
 public class BaseBillingStrategyFactory implements BillingStrategyFactory {
 
-	private Map<Pair, BaseBillingStrategy> strategyMapping;
+	private Map<Pair, BaseBillingStrategy> strategiesRepository;
 
 	@Setter
 	private PeakBillingStrategyFactory peakBillingStrategyFactory;
 
 	public BaseBillingStrategyFactory() {
-		strategyMapping = Maps.newHashMapWithExpectedSize(4);
-		strategyMapping.put(Pair.of(Locale.INNER_RING, TimeRange.DAY),
+		strategiesRepository = Maps.newHashMapWithExpectedSize(4);
+		strategiesRepository.put(Pair.of(Locale.INNER_RING, TimeRange.DAY),
 				BaseBillingStrategy.defaultBuilder()
 						.startingPrice(valueOf(14))
 						.shortDistancePrice(valueOf(2.5))
 						.longDistancePrice(valueOf(3.5))
 						.build());
-		strategyMapping.put(Pair.of(Locale.INNER_RING, TimeRange.NIGHT),
+		strategiesRepository.put(Pair.of(Locale.INNER_RING, TimeRange.NIGHT),
 				BaseBillingStrategy.defaultBuilder()
 						.startingPrice(valueOf(18))
 						.shortDistancePrice(valueOf(3))
 						.longDistancePrice(valueOf(4.7))
 						.build());
-		strategyMapping.put(Pair.of(Locale.OUTER_RING, TimeRange.DAY),
+		strategiesRepository.put(Pair.of(Locale.OUTER_RING, TimeRange.DAY),
 				BaseBillingStrategy.defaultBuilder()
 						.startingPrice(valueOf(14))
 						.shortDistancePrice(valueOf(2.5))
 						.longDistancePrice(valueOf(2.5))
 						.build());
-		strategyMapping.put(Pair.of(Locale.OUTER_RING, TimeRange.NIGHT),
+		strategiesRepository.put(Pair.of(Locale.OUTER_RING, TimeRange.NIGHT),
 				BaseBillingStrategy.defaultBuilder()
 						.startingPrice(valueOf(18))
 						.shortDistancePrice(valueOf(3))
@@ -56,7 +56,7 @@ public class BaseBillingStrategyFactory implements BillingStrategyFactory {
 	public BillingStrategy getBillingStrategy(Taxi taxi, TaxiTime currentTime) {
 		Locale locale = taxi.getLocale();
 		TimeRange timeRange = currentTime.getTimeRange();
-		BaseBillingStrategy baseBillingStrategy = strategyMapping.get(Pair.of(locale, timeRange));
+		BaseBillingStrategy baseBillingStrategy = strategiesRepository.get(Pair.of(locale, timeRange));
 		if (peakBillingStrategyFactory != null) {
 			return peakBillingStrategyFactory.getPeakBillingStrategy(baseBillingStrategy);
 		} else {
@@ -84,7 +84,7 @@ public class BaseBillingStrategyFactory implements BillingStrategyFactory {
 		private BigDecimal shortDistancePrice;
 		private BigDecimal longDistancePrice;
 
-		public static BaseBillingStrategyBuilder defaultBuilder(){
+		static BaseBillingStrategyBuilder defaultBuilder(){
 			return new BaseBillingStrategyBuilder().paidDistance(3).longDistanceCriticalPoint(10);
 		}
 
